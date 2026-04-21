@@ -113,7 +113,7 @@ cmake_build_slice() {
         -DCMAKE_OSX_ARCHITECTURES=arm64 \
         -DCMAKE_OSX_DEPLOYMENT_TARGET="${min_os}" \
         -DCMAKE_INSTALL_PREFIX="${install_prefix}" \
-        "${extra_flags[@]}"
+        ${extra_flags[@]+"${extra_flags[@]}"}
     cmake --build "${cmake_build_dir}" --parallel "$(sysctl -n hw.logicalcpu)"
     cmake --install "${cmake_build_dir}"
 }
