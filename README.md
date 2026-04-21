@@ -89,7 +89,7 @@ To switch to this build, edit `downloadFrameworks.sh`:
 # Change:
 BASE_URL="https://github.com/holzschu/Python-aux/releases/download/1.0"
 # To:
-BASE_URL="https://github.com/sayzard/python-apple-deps/releases/download/v2.0.0"
+BASE_URL="https://github.com/sayzard/python-apple-deps/releases/download/v1.0.0"
 ```
 
 **Note**: Minimum OS version changed from 14.0 to **16.0**. Update your Xcode project's deployment target accordingly.
