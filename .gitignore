@@ -1,0 +1,11 @@
+build/
+xcframeworks/
+src/
+*.tar.gz
+*.tar.xz
+*.tar.bz2
+*.zip
+!Package.swift
+.DS_Store
+*.log
+.claude/

@@ -1,0 +1,47 @@
+name: Build Verify
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - 'build_all.sh'
+      - 'Info.plist.template'
+
+jobs:
+  verify:
+    name: Verify build scripts (dry-run)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.0'
+
+      - name: Install dependencies
+        run: |
+          brew install cmake automake libtool pkg-config gcc shellcheck
+
+      - name: shellcheck
+        run: shellcheck -e SC1091 scripts/*.sh build_all.sh package_xcframeworks.sh
+
+      - name: Build changed package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Detect which build script changed in this PR
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'scripts/build_*.sh' | head -1)
+          if [[ -n "${CHANGED}" ]]; then
+            echo "Building ${CHANGED}"
+            bash "${CHANGED}"
+          else
+            echo "No build script changed, skipping build."
+          fi
+
+      - name: Verify xcframeworks
+        run: |
+          if ls xcframeworks/*.xcframework 2>/dev/null | head -1 | grep -q xcframework; then
+            ./tests/verify_xcframework.sh
+          else
+            echo "No xcframeworks produced, skipping verification."
+          fi
