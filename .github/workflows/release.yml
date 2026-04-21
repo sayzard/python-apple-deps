@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build-and-release:
     name: Build all packages and create release
@@ -14,6 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: maxim-lobanov/setup-xcode@v1
@@ -68,20 +72,39 @@ jobs:
           print("Updated Package.swift with", len(checksums), "checksums")
           EOF
 
-      - name: Commit updated Package.swift
+      - name: Commit Package.swift + move tag to new commit
+        id: retag
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Package.swift checksums.sha256
-          git diff --cached --quiet || git commit -m "chore: update checksums for ${{ github.ref_name }} [skip ci]"
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            echo "moved=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "chore: update checksums for ${{ github.ref_name }} [skip ci]"
           git push origin HEAD:main
+          # Force-move the release tag to the updated commit so SwiftPM resolves
+          # Package.swift with the correct checksums.
+          git tag -f ${{ github.ref_name }}
+          git push -f origin refs/tags/${{ github.ref_name }}
+          echo "moved=true" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
           files: |
             xcframeworks/*.xcframework.zip
             checksums.sha256
           generate_release_notes: true
+          body: |
+            Python-aux xcframeworks — iOS 16 / macOS 13 / Apple Silicon.
+
+            Drop-in compatible with [holzschu/Python-aux](https://github.com/holzschu/Python-aux) 1.0.
+
+            SHA256 checksums for each zip are in `checksums.sha256`.
+            Swift Package Manager users: `Package.swift` is pre-populated with verified checksums.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
