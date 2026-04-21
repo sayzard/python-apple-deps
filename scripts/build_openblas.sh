@@ -80,7 +80,7 @@ for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
                 DYNAMIC_ARCH=0 \
                 NO_SHARED=0 \
                 PREFIX="${install_dir}" \
-                -j${NCPU}
+                -j"${NCPU}"
             make -C "${src_copy}" install PREFIX="${install_dir}"
             ;;
         ios-arm64-simulator)
@@ -98,7 +98,7 @@ for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
                 DYNAMIC_ARCH=0 \
                 NO_SHARED=0 \
                 PREFIX="${install_dir}" \
-                -j${NCPU}
+                -j"${NCPU}"
             make -C "${src_copy}" install PREFIX="${install_dir}"
             ;;
         macos-arm64)
@@ -118,7 +118,7 @@ for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
                     DYNAMIC_ARCH=0 \
                     NO_SHARED=0 \
                     PREFIX="${install_dir}" \
-                    -j${NCPU}
+                    -j"${NCPU}"
             else
                 make -C "${src_copy}" shared \
                     TARGET=ARMV8 \
@@ -132,7 +132,7 @@ for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
                     DYNAMIC_ARCH=0 \
                     NO_SHARED=0 \
                     PREFIX="${install_dir}" \
-                    -j${NCPU}
+                    -j"${NCPU}"
             fi
             make -C "${src_copy}" install PREFIX="${install_dir}"
             ;;

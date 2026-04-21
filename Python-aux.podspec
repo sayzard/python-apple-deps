@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.author       = "Python-aux Contributors"
   s.platforms    = { :ios => "16.0", :osx => "13.0" }
   s.source       = {
-    :http => "https://github.com/sayzard/python-apple-deps/releases/download/v2.0.0/all-xcframeworks.zip"
+    :http => "https://github.com/sayzard/python-apple-deps/releases/download/v1.0.0/all-xcframeworks.zip"
   }
 
   # One subspec per xcframework.

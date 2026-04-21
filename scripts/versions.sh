@@ -1,6 +1,7 @@
 #!/bin/bash
 # Package version constants — single source of truth for all build scripts.
 # Last verified: 2026-04-21
+# shellcheck disable=SC2034  # variables are used by sourcing build scripts
 
 OPENSSL_VERSION=3.4.1
 LIBFFI_VERSION=3.5.2

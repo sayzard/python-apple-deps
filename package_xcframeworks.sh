@@ -40,7 +40,7 @@ FRAMEWORKS=(
 )
 
 CHECKSUMS_FILE="${ROOT_DIR}/checksums.sha256"
-> "${CHECKSUMS_FILE}"
+: > "${CHECKSUMS_FILE}"
 
 for name in "${FRAMEWORKS[@]}"; do
     fw="${name}.xcframework"
