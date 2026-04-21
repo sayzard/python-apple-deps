@@ -9,7 +9,7 @@
 import PackageDescription
 
 let tag = "v2.0.0"
-let baseURL = "https://github.com/YOUR_USERNAME/Python-aux/releases/download/\(tag)"
+let baseURL = "https://github.com/sayzard/python-apple-deps/releases/download/\(tag)"
 
 func xcfw(_ name: String, checksum: String) -> Target {
     .binaryTarget(

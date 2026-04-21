@@ -7,12 +7,12 @@ Pod::Spec.new do |s|
     Simulator support. Provides 21 xcframeworks covering crypto, image formats,
     geospatial, numerical, and messaging libraries.
   DESC
-  s.homepage     = "https://github.com/YOUR_USERNAME/Python-aux"
+  s.homepage     = "https://github.com/sayzard/python-apple-deps"
   s.license      = { :type => "MIT", :file => "LICENSE" }
   s.author       = "Python-aux Contributors"
   s.platforms    = { :ios => "16.0", :osx => "13.0" }
   s.source       = {
-    :http => "https://github.com/YOUR_USERNAME/Python-aux/releases/download/v2.0.0/all-xcframeworks.zip"
+    :http => "https://github.com/sayzard/python-apple-deps/releases/download/v2.0.0/all-xcframeworks.zip"
   }
 
   # One subspec per xcframework.

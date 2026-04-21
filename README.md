@@ -4,7 +4,7 @@
 > Drop-in replacement for [holzschu/Python-aux](https://github.com/holzschu/Python-aux) with updated packages, arm64 Simulator support, and reproducible builds.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Build](https://github.com/your-username/Python-aux/actions/workflows/release.yml/badge.svg)
+![Build](https://github.com/sayzard/python-apple-deps/actions/workflows/release.yml/badge.svg)
 
 ## Supported Slices
 
@@ -75,7 +75,7 @@
 
 ```swift
 // Package.swift
-.package(url: "https://github.com/your-username/Python-aux", from: "2.0.0")
+.package(url: "https://github.com/sayzard/python-apple-deps", from: "2.0.0")
 ```
 
 Select the frameworks you need in your target's dependencies.
@@ -89,7 +89,7 @@ To switch to this build, edit `downloadFrameworks.sh`:
 # Change:
 BASE_URL="https://github.com/holzschu/Python-aux/releases/download/1.0"
 # To:
-BASE_URL="https://github.com/your-username/Python-aux/releases/download/v2.0.0"
+BASE_URL="https://github.com/sayzard/python-apple-deps/releases/download/v2.0.0"
 ```
 
 **Note**: Minimum OS version changed from 14.0 to **16.0**. Update your Xcode project's deployment target accordingly.
@@ -97,7 +97,7 @@ BASE_URL="https://github.com/your-username/Python-aux/releases/download/v2.0.0"
 ## Build from Source
 
 ```bash
-git clone https://github.com/your-username/Python-aux.git
+git clone https://github.com/sayzard/python-apple-deps.git
 cd Python-aux
 
 # Install prerequisites
