@@ -24,18 +24,22 @@ SHA256="56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467"
 
 BUILD_BASE="${ROOT_DIR}/build/${PKG}"
 INSTALL_BASE="${BUILD_BASE}/install"
+INSTALL_BASE_STATIC="${BUILD_BASE}/install_static"
 FW_STAGING="${BUILD_BASE}/frameworks"
 
 log "[${PKG}] Fetching sources..."
 fetch_source "${SRC}" "${URL}" "${SHA256}"
 
 # ── Per-slice autotools build ──────────────────────────────────────────────────
+# build_fftw_slice <slice> <install_prefix> <build_dir> <shared_flag> <static_flag>
 build_fftw_slice() {
     local slice="$1"
-    local install_prefix="${INSTALL_BASE}/${slice}"
-    local build_dir="${BUILD_BASE}/build_${slice}"
+    local install_prefix="$2"
+    local build_dir="$3"
+    local shared_flag="$4"
+    local static_flag="$5"
 
-    log "[${PKG}] Building slice: ${slice}"
+    log "[${PKG}] Building slice: ${slice} (${shared_flag}/${static_flag})"
     rm -rf "${build_dir}"
     mkdir -p "${build_dir}"
 
@@ -60,24 +64,35 @@ build_fftw_slice() {
 
     (
         cd "${build_dir}"
-        # Run configure from build dir against unpacked source
         "${SRC_DIR}/${SRC}/configure" \
             --host="${host}" \
             --prefix="${install_prefix}" \
-            --enable-shared \
-            --disable-static \
+            "${shared_flag}" \
+            "${static_flag}" \
             --enable-threads \
             --disable-fortran \
             CC="${cc}" \
             CFLAGS="${cflags}" \
-            LDFLAGS="${cflags}"   # LDFLAGS must mirror CFLAGS for correct sysroot/arch
+            LDFLAGS="${cflags}"
         make -j"$(sysctl -n hw.logicalcpu)"
         make install
     )
 }
 
+log "[${PKG}] Building shared slices..."
 for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
-    build_fftw_slice "${slice}"
+    build_fftw_slice "${slice}" \
+        "${INSTALL_BASE}/${slice}" \
+        "${BUILD_BASE}/build_${slice}" \
+        "--enable-shared" "--disable-static"
+done
+
+log "[${PKG}] Building static slices..."
+for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
+    build_fftw_slice "${slice}" \
+        "${INSTALL_BASE_STATIC}/${slice}" \
+        "${BUILD_BASE}/build_static_${slice}" \
+        "--disable-shared" "--enable-static"
 done
 
 # ── Assemble xcframeworks ─────────────────────────────────────────────────────
@@ -92,6 +107,9 @@ for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
         "${INSTALL_BASE}/${slice}/include" \
         "${local_min_os}" \
         "${local_platform}"
+    add_static_lib \
+        "${FW_STAGING}/${slice}" "libfftw3" \
+        "${INSTALL_BASE_STATIC}/${slice}/lib/libfftw3.a"
 
     make_framework \
         "${FW_STAGING}/${slice}" "libfftw3_threads" \
@@ -99,6 +117,9 @@ for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
         "${INSTALL_BASE}/${slice}/include" \
         "${local_min_os}" \
         "${local_platform}"
+    add_static_lib \
+        "${FW_STAGING}/${slice}" "libfftw3_threads" \
+        "${INSTALL_BASE_STATIC}/${slice}/lib/libfftw3_threads.a"
 done
 
 make_xcframework "libfftw3" \

@@ -40,6 +40,7 @@ for fw_path in "${XCFW_DIR}"/*.xcframework; do
         if [[ "${fmt}" == "dynamic" ]]; then
             binary="${fw_path}/${slice}/${fw_name}.framework/${fw_name}"
             plist="${fw_path}/${slice}/${fw_name}.framework/Info.plist"
+            static_lib="${fw_path}/${slice}/${fw_name}.framework/${fw_name}.a"
 
             check "${slice}: binary exists"      test -f "${binary}"
             check "${slice}: Info.plist exists"  test -f "${plist}"
@@ -56,6 +57,11 @@ for fw_path in "${XCFW_DIR}"/*.xcframework; do
                     plutil -lint "${plist}"
                 check "${slice}: CFBundleExecutable = ${fw_name}" \
                     bash -c "[[ \"\$(plutil -extract CFBundleExecutable raw '${plist}')\" == '${fw_name}' ]]"
+            fi
+            # Static companion (.a) — present only for libraries that have a static build
+            if [[ -f "${static_lib}" ]]; then
+                check "${slice}: static .a arm64 arch" \
+                    bash -c "lipo -info '${static_lib}' | grep -q arm64"
             fi
         else
             # Static library format: any .a in the slice directory

@@ -24,18 +24,22 @@ SHA256="9acfe68419c4d06a45c550321b3212762d92f41465062ca4ea19e632ee5d216e"
 
 BUILD_BASE="${ROOT_DIR}/build/${PKG}"
 INSTALL_BASE="${BUILD_BASE}/install"
+INSTALL_BASE_STATIC="${BUILD_BASE}/install_static"
 FW_STAGING="${BUILD_BASE}/frameworks"
 
 log "[${PKG}] Fetching sources..."
 fetch_source "${SRC}" "${URL}" "${SHA256}"
 
 # ── Per-slice autotools build ──────────────────────────────────────────────────
+# build_xslt_slice <slice> <install_prefix> <build_dir> <shared_flag> <static_flag>
 build_xslt_slice() {
     local slice="$1"
-    local install_prefix="${INSTALL_BASE}/${slice}"
-    local build_dir="${BUILD_BASE}/build_${slice}"
+    local install_prefix="$2"
+    local build_dir="$3"
+    local shared_flag="$4"
+    local static_flag="$5"
 
-    log "[${PKG}] Building slice: ${slice}"
+    log "[${PKG}] Building slice: ${slice} (${shared_flag}/${static_flag})"
     rm -rf "${build_dir}"
     mkdir -p "${build_dir}"
 
@@ -61,7 +65,6 @@ build_xslt_slice() {
             ;;
     esac
 
-    # libxml2 headers live inside the SDK sysroot
     local libxml_cflags="-I${sysroot}/usr/include/libxml2"
     local libxml_libs="-lxml2"
 
@@ -72,8 +75,8 @@ build_xslt_slice() {
         ./configure \
             --host="${host}" \
             --prefix="${install_prefix}" \
-            --enable-shared \
-            --disable-static \
+            "${shared_flag}" \
+            "${static_flag}" \
             --without-python \
             --without-crypto \
             --without-debug \
@@ -88,8 +91,20 @@ build_xslt_slice() {
     )
 }
 
+log "[${PKG}] Building shared slices..."
 for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
-    build_xslt_slice "${slice}"
+    build_xslt_slice "${slice}" \
+        "${INSTALL_BASE}/${slice}" \
+        "${BUILD_BASE}/build_${slice}" \
+        "--enable-shared" "--disable-static"
+done
+
+log "[${PKG}] Building static slices..."
+for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
+    build_xslt_slice "${slice}" \
+        "${INSTALL_BASE_STATIC}/${slice}" \
+        "${BUILD_BASE}/build_static_${slice}" \
+        "--disable-shared" "--enable-static"
 done
 
 # ── Assemble xcframeworks ─────────────────────────────────────────────────────
@@ -104,6 +119,9 @@ for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
         "${INSTALL_BASE}/${slice}/include" \
         "${local_min_os}" \
         "${local_platform}"
+    add_static_lib \
+        "${FW_STAGING}/${slice}" "libxslt" \
+        "${INSTALL_BASE_STATIC}/${slice}/lib/libxslt.a"
 
     make_framework \
         "${FW_STAGING}/${slice}" "libexslt" \
@@ -111,6 +129,9 @@ for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
         "${INSTALL_BASE}/${slice}/include" \
         "${local_min_os}" \
         "${local_platform}"
+    add_static_lib \
+        "${FW_STAGING}/${slice}" "libexslt" \
+        "${INSTALL_BASE_STATIC}/${slice}/lib/libexslt.a"
 
     # Rewrite embedded libxslt dependency inside libexslt to @rpath
     rewrite_dep \

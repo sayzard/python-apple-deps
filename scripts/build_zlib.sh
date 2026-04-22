@@ -17,12 +17,13 @@ SHA256="bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16"
 
 BUILD_BASE="${ROOT_DIR}/build/${PKG}"
 INSTALL_BASE="${BUILD_BASE}/install"
+INSTALL_BASE_STATIC="${BUILD_BASE}/install_static"
 FW_STAGING="${BUILD_BASE}/frameworks"
 
 log "[${PKG}] Fetching sources..."
 fetch_source "${SRC}" "${URL}" "${SHA256}"
 
-log "[${PKG}] Building slices..."
+log "[${PKG}] Building shared slices..."
 for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
     cmake_build_slice "${slice}" \
         "${SRC_DIR}/${SRC}" \
@@ -30,6 +31,17 @@ for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
         "${INSTALL_BASE}/${slice}" \
         -DZLIB_BUILD_EXAMPLES=OFF \
         -DZLIB_BUILD_SHARED=ON
+done
+
+log "[${PKG}] Building static slices..."
+for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
+    cmake_build_slice "${slice}" \
+        "${SRC_DIR}/${SRC}" \
+        "${BUILD_BASE}/cmake_static_${slice}" \
+        "${INSTALL_BASE_STATIC}/${slice}" \
+        -DZLIB_BUILD_EXAMPLES=OFF \
+        -DZLIB_BUILD_SHARED=OFF \
+        -DBUILD_SHARED_LIBS=OFF
 done
 
 log "[${PKG}] Assembling xcframeworks..."
@@ -40,6 +52,9 @@ for slice in ios-arm64 ios-arm64-simulator macos-arm64; do
         "${INSTALL_BASE}/${slice}/include" \
         "$(slice_to_min_os "${slice}")" \
         "$(slice_to_platform "${slice}")"
+    add_static_lib \
+        "${FW_STAGING}/${slice}" "libz" \
+        "${INSTALL_BASE_STATIC}/${slice}/lib/libz.a"
 done
 
 make_xcframework "libz" \

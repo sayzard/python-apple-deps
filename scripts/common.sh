@@ -185,6 +185,25 @@ make_xcframework() {
     echo "[OK] ${output}"
 }
 
+# ── 기존 .framework 번들에 정적 라이브러리 추가 ──────────────────────────────
+# add_static_lib <fw_staging_dir> <name> <static_lib_path>
+# 이미 make_framework 로 생성된 .framework 안에 <name>.a 를 추가한다.
+# buildForiOS.sh 에서 Python 확장 모듈 링킹 시 참조할 수 있도록 동적 바이너리와
+# 동일한 위치(framework 번들 내부)에 배치한다.
+add_static_lib() {
+    local fw_staging_dir="$1"
+    local name="$2"
+    local static_lib_path="$3"
+
+    local fw="${fw_staging_dir}/${name}.framework"
+    if [[ ! -d "${fw}" ]]; then
+        echo "[ERROR] add_static_lib: framework not found: ${fw}" >&2
+        return 1
+    fi
+    cp -L "${static_lib_path}" "${fw}/${name}.a"
+    echo "[OK] Added ${name}.a → ${fw}/${name}.a"
+}
+
 log() {
     echo "[$(date '+%H:%M:%S')] $*"
 }
